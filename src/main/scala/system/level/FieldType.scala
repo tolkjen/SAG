@@ -1,4 +1,4 @@
-package system
+package system.level
 
 object FieldType extends Enumeration {
   type FieldType = Value

@@ -1,17 +1,25 @@
 package system
 
+import java.util.concurrent.TimeoutException
+
 import akka.actor.{TypedActor, TypedProps, ActorSystem}
+import system.level.{LevelMap, Point}
+
+import scala.util.Random
 
 object Robot {
   val speed = 1.0
+  val radius = 5.0
   val system = ActorSystem("warehouse")
+  val random = new Random
 }
 
-class Robot(var position: Point) {
-  def this(x: Float, y:Float) = this(new Point(x, y))
+class Robot(var position: Point, warehouse: Warehouse) {
+  def this(x: Double, y: Double, warehouse: Warehouse) = this(new Point(x, y), warehouse)
 
-  var actor: Option[RobotActor] = None
+  var actor: Option[RobotService] = None
   var operation: Option[RobotOperation] = None
+  val level = warehouse.level.copy
 
   def progress(dt: Double): Unit = {
     if (actor.isDefined && !operation.isDefined)
@@ -26,15 +34,32 @@ class Robot(var position: Point) {
     }
   }
 
-  def chooseOperation(): Option[RobotOperation] = actor.get.getIntention match {
-    case MoveIntention(dest) => Some(new MoveOperation(this, dest))
+  def chooseOperation(): Option[RobotOperation] = actor match {
+    case Some(act) => act.getIntention match {
+      case MoveIntention(dest) => Some(new MoveOperation(this, dest))
+      case _ => None
+    }
+    case None => None
+  }
+
+  def inRadius(that: Robot): Boolean = (that.position - position).length <= Robot.radius
+
+  def signalNextStep(): Unit = {
+    if (actor.isDefined) {
+      val robots = warehouse.receivers ++ warehouse.senders
+      val actorsInRadius = for (robot <- robots if robot != this && inRadius(robot) && robot.actor.isDefined)
+        yield robot.actor.get
+      actor.get.broadcast(actorsInRadius)
+    }
   }
 
   def startActor(): Unit ={
-    actor = Some(TypedActor(Robot.system).typedActorOf(TypedProps[RobotActorImpl]()))
+    val name = "robot-" + Robot.random.nextInt(100000)
+    actor = Some(TypedActor(Robot.system).typedActorOf(TypedProps[RobotServiceImpl](), name))
+    actor.get.setLevelMap(level)
   }
 
-  def stopActor(): Unit ={
+  def stopActor(): Unit = {
     TypedActor(Robot.system).stop(actor.get)
   }
 }

@@ -1,6 +1,7 @@
 package app
 
-import system.{FieldType, LevelMap, Warehouse}
+import system.Warehouse
+import system.level.LevelMap
 
 object Main {
   def main(args: Array[String]): Unit = {

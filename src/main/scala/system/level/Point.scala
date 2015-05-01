@@ -1,4 +1,4 @@
-package system
+package system.level
 
 class Point(var x: Double, var y: Double) {
   def this(that: Point) = this(that.x, that.y)
@@ -9,5 +9,6 @@ class Point(var x: Double, var y: Double) {
   def ==(that: Point): Boolean = x == that.x && y == that.y
   def !=(that: Point): Boolean = !(this == that)
   def length: Double = Math.sqrt(x*x + y*y)
+  def toIntPoint: Point = new Point(x.toInt, y.toInt)
   override def toString = "("+x+", "+y+")"
 }

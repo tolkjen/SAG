@@ -1,4 +1,4 @@
-package system
+package system.level
 
 import java.io.InputStream
 
@@ -24,9 +24,19 @@ object LevelMap {
     }).toArray
     levelMap
   }
+
+  def merge(a: LevelMap, b: LevelMap): LevelMap = {
+    val newMap = new LevelMap(a.width, a.height)
+    for (row <- 0 until a.height) {
+      for (col <- 0 until a.width) {
+        newMap.data(row)(col) = LevelField.latest(a.data(row)(col), b.data(row)(col)).copy
+      }
+    }
+    newMap
+  }
 }
 
-class LevelMap(width: Int, height: Int) {
+class LevelMap(val width: Int, val height: Int) {
   private var data: Array[Array[LevelField]] = Array.tabulate(height, width)((y, x) => new LevelField)
 
   def this() = this(10, 10)
@@ -37,5 +47,15 @@ class LevelMap(width: Int, height: Int) {
       p = new Point(LevelMap.random.nextInt(width), LevelMap.random.nextInt(height))
     } while (data(p.y.toInt)(p.x.toInt).fieldType != FieldType.Empty)
     p
+  }
+
+  def copy: LevelMap = {
+    val mapCopy = new LevelMap(width, height)
+    for (row <- 0 until height) {
+      for (col <- 0 until width) {
+        mapCopy.data(row)(col) = data(row)(col).copy
+      }
+    }
+    mapCopy
   }
 }
