@@ -1,15 +1,17 @@
 package system
 
-import system.level.LevelMap
+import system.level.{LevelMap, Point}
 
 import scala.concurrent.Future
 
 trait RobotService {
-  def getIntention: RobotIntention
+  def getIntention: Option[RobotIntention]
 
   def signalDone(): Unit
 
   def setLevelMap(level: LevelMap): Unit
+
+  def position(p: Point): Unit
 
   def broadcast(actors: Array[RobotService]): Unit
 

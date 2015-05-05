@@ -19,6 +19,7 @@ object LevelMap {
       (for (ch <- line) yield ch match {
         case '.' => new LevelField
         case '#' => new LevelField(FieldType.Shelf)
+        case 'R' => new LevelField(FieldType.Receive)
         case _ => throw new Exception("Unknown field type.")
       }).toArray
     }).toArray
@@ -41,11 +42,11 @@ class LevelMap(val width: Int, val height: Int) {
 
   def this() = this(10, 10)
 
-  def randomEmptyPosition(): Point = {
+  def randomEmptyPosition(forbidden: Option[Point] = None): Point = {
     var p: Point = null
     do {
       p = new Point(LevelMap.random.nextInt(width), LevelMap.random.nextInt(height))
-    } while (data(p.y.toInt)(p.x.toInt).fieldType != FieldType.Empty)
+    } while (data(p.y.toInt)(p.x.toInt).fieldType != FieldType.Empty || (forbidden.isDefined && forbidden.get == p))
     p
   }
 
@@ -57,5 +58,51 @@ class LevelMap(val width: Int, val height: Int) {
       }
     }
     mapCopy
+  }
+
+  private def getNeighborPoints(p: Point): List[Point] = {
+    val candidates = List(new Point(p.x-1, p.y), new Point(p.x, p.y-1), new Point(p.x+1, p.y), new Point(p.x, p.y+1))
+    for {
+      point <- candidates
+      if point.x >= 0 && point.y >= 0 && point.x < width && point.y < height
+      if data(point.y.toInt)(point.x.toInt).fieldType == FieldType.Empty
+    } yield point
+  }
+
+  private def getEmptyNeighbors(map: Array[Array[Int]], p: Point): List[Point] =
+    for (nPoint <- getNeighborPoints(p) if map(nPoint.y.toInt)(nPoint.x.toInt) == 0)
+      yield nPoint
+
+  private def getWalkingPath(map: Array[Array[Int]], p: Point): List[Point] = {
+    val currentStep = map(p.y.toInt)(p.x.toInt)
+    val previousPoint = getNeighborPoints(p).filter(point => map(point.y.toInt)(point.x.toInt) == currentStep - 1).head
+    if (map(previousPoint.y.toInt)(previousPoint.x.toInt) == 1)
+      List(p)
+    else
+      getWalkingPath(map, previousPoint) ++ List(p)
+  }
+
+  def getPath(start: Point, end: Point): List[Point] = {
+    if (start != end) {
+      val stepMap: Array[Array[Int]] = Array.tabulate(height, width)((x, y) => 0)
+      stepMap(start.y.toInt)(start.x.toInt) = 1
+
+      var currentPoints: List[Point] = List(start)
+      while (currentPoints.nonEmpty) {
+        val newPoints: List[Point] = currentPoints flatMap (point => getEmptyNeighbors(stepMap, point))
+        for (point <- newPoints) {
+          val currentPoint: Point = currentPoints.head
+          stepMap(point.y.toInt)(point.x.toInt) = stepMap(currentPoint.y.toInt)(currentPoint.x.toInt) + 1
+          if (point == end) {
+            return getWalkingPath(stepMap, end)
+          }
+        }
+        currentPoints = newPoints
+      }
+
+      throw new Exception("Can't find path")
+    } else {
+      List[Point]()
+    }
   }
 }

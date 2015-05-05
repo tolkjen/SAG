@@ -13,13 +13,13 @@ class MoveOperation(robot: Robot, destination: Point) extends RobotOperation {
       val oldPosition = robot.position.toIntPoint
       robot.position += delta
 
-      if (oldPosition != robot.position.toIntPoint)
-        robot.signalNextStep()
-
       if ((robot.position - startPoint).length >= (destination - startPoint).length) {
         robot.position = destination
         done = true
       }
+
+      if (oldPosition != robot.position.toIntPoint)
+        robot.signalPosition()
     } else {
       done = true
     }

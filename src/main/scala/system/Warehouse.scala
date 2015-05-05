@@ -4,8 +4,8 @@ import system.level.LevelMap
 
 class Warehouse(val level: LevelMap) {
   val emptyLevel = level.copy
-  val nReceivers = 5
-  val nSenders = 5
+  val nReceivers = 1
+  val nSenders = 0
   val receivers: Array[Robot] = Array.tabulate(nReceivers)(x =>
     new Robot(level.randomEmptyPosition(), this)
   )

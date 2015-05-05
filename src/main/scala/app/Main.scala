@@ -1,7 +1,7 @@
 package app
 
 import system.Warehouse
-import system.level.LevelMap
+import system.level.{Point, LevelMap}
 
 object Main {
   def main(args: Array[String]): Unit = {

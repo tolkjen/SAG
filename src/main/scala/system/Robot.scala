@@ -36,7 +36,7 @@ class Robot(var position: Point, warehouse: Warehouse) {
 
   def chooseOperation(): Option[RobotOperation] = actor match {
     case Some(act) => act.getIntention match {
-      case MoveIntention(dest) => Some(new MoveOperation(this, dest))
+      case Some(MoveIntention(dest)) => Some(new MoveOperation(this, dest))
       case _ => None
     }
     case None => None
@@ -44,12 +44,13 @@ class Robot(var position: Point, warehouse: Warehouse) {
 
   def inRadius(that: Robot): Boolean = (that.position - position).length <= Robot.radius
 
-  def signalNextStep(): Unit = {
+  def signalPosition(): Unit = {
     if (actor.isDefined) {
       val robots = warehouse.receivers ++ warehouse.senders
       val actorsInRadius = for (robot <- robots if robot != this && inRadius(robot) && robot.actor.isDefined)
         yield robot.actor.get
       actor.get.broadcast(actorsInRadius)
+      actor.get.position(position.toIntPoint)
     }
   }
 
@@ -57,6 +58,7 @@ class Robot(var position: Point, warehouse: Warehouse) {
     val name = "robot-" + Robot.random.nextInt(100000)
     actor = Some(TypedActor(Robot.system).typedActorOf(TypedProps[RobotServiceImpl](), name))
     actor.get.setLevelMap(level)
+    actor.get.position(position.toIntPoint)
   }
 
   def stopActor(): Unit = {
