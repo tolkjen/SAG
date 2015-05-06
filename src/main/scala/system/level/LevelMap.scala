@@ -2,6 +2,10 @@ package system.level
 
 import java.io.InputStream
 
+import system.level.FieldType.FieldType
+import system.level.ItemType.ItemType
+
+import scala.collection.immutable.IndexedSeq
 import scala.util.Random
 
 object LevelMap {
@@ -19,7 +23,8 @@ object LevelMap {
       (for (ch <- line) yield ch match {
         case '.' => new LevelField
         case '#' => new LevelField(FieldType.Shelf)
-        case 'R' => new LevelField(FieldType.Receive)
+        case 'C' => new LevelField(FieldType.Consumer)
+        case 'P' => new LevelField(FieldType.Producer)
         case _ => throw new Exception("Unknown field type.")
       }).toArray
     }).toArray
@@ -60,41 +65,44 @@ class LevelMap(val width: Int, val height: Int) {
     mapCopy
   }
 
-  private def getNeighborPoints(p: Point): List[Point] = {
-    val candidates = List(new Point(p.x-1, p.y), new Point(p.x, p.y-1), new Point(p.x+1, p.y), new Point(p.x, p.y+1))
+  private def neighbors(p: Point): List[Point] =
     for {
-      point <- candidates
+      point <- List(new Point(p.x-1, p.y), new Point(p.x, p.y-1), new Point(p.x+1, p.y), new Point(p.x, p.y+1))
       if point.x >= 0 && point.y >= 0 && point.x < width && point.y < height
+    } yield point
+
+  private def emptyNeighbors(p: Point): List[Point] =
+    for {
+      point <- neighbors(p)
       if data(point.y.toInt)(point.x.toInt).fieldType == FieldType.Empty
     } yield point
-  }
 
-  private def getEmptyNeighbors(map: Array[Array[Int]], p: Point): List[Point] =
-    for (nPoint <- getNeighborPoints(p) if map(nPoint.y.toInt)(nPoint.x.toInt) == 0)
-      yield nPoint
+  private def unvisitedEmptyNeighbors(map: Array[Array[Int]], p: Point): List[Point] =
+    for (point <- emptyNeighbors(p) if map(point.y.toInt)(point.x.toInt) == 0)
+      yield point
 
-  private def getWalkingPath(map: Array[Array[Int]], p: Point): List[Point] = {
+  private def walkingPath(map: Array[Array[Int]], p: Point): List[Point] = {
     val currentStep = map(p.y.toInt)(p.x.toInt)
-    val previousPoint = getNeighborPoints(p).filter(point => map(point.y.toInt)(point.x.toInt) == currentStep - 1).head
+    val previousPoint = emptyNeighbors(p).filter(point => map(point.y.toInt)(point.x.toInt) == currentStep - 1).head
     if (map(previousPoint.y.toInt)(previousPoint.x.toInt) == 1)
       List(p)
     else
-      getWalkingPath(map, previousPoint) ++ List(p)
+      walkingPath(map, previousPoint) ++ List(p)
   }
 
-  def getPath(start: Point, end: Point): List[Point] = {
-    if (start != end) {
+  private def unblockedPath(start: Point, ends: Seq[Point]): List[Point] = {
+    if (!ends.contains(start)) {
       val stepMap: Array[Array[Int]] = Array.tabulate(height, width)((x, y) => 0)
       stepMap(start.y.toInt)(start.x.toInt) = 1
 
       var currentPoints: List[Point] = List(start)
       while (currentPoints.nonEmpty) {
-        val newPoints: List[Point] = currentPoints flatMap (point => getEmptyNeighbors(stepMap, point))
+        val newPoints: List[Point] = currentPoints flatMap (point => unvisitedEmptyNeighbors(stepMap, point))
         for (point <- newPoints) {
           val currentPoint: Point = currentPoints.head
           stepMap(point.y.toInt)(point.x.toInt) = stepMap(currentPoint.y.toInt)(currentPoint.x.toInt) + 1
-          if (point == end) {
-            return getWalkingPath(stepMap, end)
+          if (ends.contains(point)) {
+            return walkingPath(stepMap, point)
           }
         }
         currentPoints = newPoints
@@ -104,5 +112,28 @@ class LevelMap(val width: Int, val height: Int) {
     } else {
       List[Point]()
     }
+  }
+  
+  def position(fType: FieldType): IndexedSeq[Point] =
+    for {
+      y <- 0 until height
+      x <- 0 until width
+      if data(y)(x).fieldType == fType
+    } yield new Point(x, y)
+
+  def path(start: Point, ends: IndexedSeq[Point]): List[Point] = {
+    val endsNeighbors = ends flatMap (p => emptyNeighbors(p))
+    val path = unblockedPath(start, endsNeighbors)
+    val destination = neighbors(path.last).toSet.intersect(ends.toSet).head
+    path.toList ++ List(destination)
+  }
+
+  def get(p: Point): ItemType = data(p.yInt)(p.xInt).item match {
+    case Some(item) => item
+    case None => throw new Exception("Field at "+p+" has no item in it.")
+  }
+
+  def set(p: Point, item: ItemType): Unit = {
+    data(p.yInt)(p.xInt) = new LevelField(data(p.yInt)(p.xInt).fieldType, item)
   }
 }

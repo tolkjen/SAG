@@ -1,6 +1,6 @@
 package system.level
 
-class Point(var x: Double, var y: Double) {
+class Point(var x: Double = 0.0, var y: Double = 0.0) {
   def this(that: Point) = this(that.x, that.y)
   def +(that: Point): Point = new Point(x + that.x, y + that.y)
   def -(that: Point): Point = new Point(x - that.x, y - that.y)
@@ -10,5 +10,15 @@ class Point(var x: Double, var y: Double) {
   def !=(that: Point): Boolean = !(this == that)
   def length: Double = Math.sqrt(x*x + y*y)
   def toIntPoint: Point = new Point(x.toInt, y.toInt)
+  def xInt: Int = x.toInt
+  def yInt: Int = y.toInt
+
   override def toString = "("+x+", "+y+")"
+
+  override def equals(o: Any): Boolean = o match {
+    case that: Point => this == that
+    case _ => false
+  }
+
+  override def hashCode = toString.hashCode
 }

@@ -8,7 +8,7 @@ object LevelField {
     if (a.lastUpdated >= b.lastUpdated) a else b
 }
 
-class LevelField(val fieldType: FieldType, item: Option[ItemType]) {
+class LevelField(val fieldType: FieldType, val item: Option[ItemType]) {
   val lastUpdated: Long = System.currentTimeMillis
 
   def this() = this(FieldType.Empty, None)

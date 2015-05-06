@@ -1,11 +1,11 @@
 package app
 
-import system.Warehouse
-import system.level.{Point, LevelMap}
+import system.SimulationSystemImpl
+import system.level.{FieldType, Point, LevelMap}
 
 object Main {
   def main(args: Array[String]): Unit = {
-    val warehouseSystem = new Warehouse(LevelMap.fromResource("/map1.txt"))
+    val warehouseSystem = new SimulationSystemImpl(LevelMap.fromResource("/map1.txt"))
     warehouseSystem.start()
     readLine()
     warehouseSystem.stop()
