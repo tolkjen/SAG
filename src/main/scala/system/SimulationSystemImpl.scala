@@ -8,7 +8,8 @@ import system.robot.{BringerRobot, Robot}
 class SimulationSystemImpl(val level: LevelMap) extends Warehouse {
   private val emptyLevel = level.copy
   private val producer: Producer = new ProducerImpl
-  private val robots: Array[Robot] = Array.tabulate(5)(i => new BringerRobot(this, producer, emptyLevel))
+  private val robots: Array[Robot] = Array.tabulate(5)(i =>
+    new BringerRobot(this, producer, emptyLevel, new Point(2, 0)))
 
   @volatile
   private var simulationStopRequested = false
@@ -24,8 +25,6 @@ class SimulationSystemImpl(val level: LevelMap) extends Warehouse {
   })
 
   def start(): Unit = {
-    for (robot <- robots)
-      robot.position = level.randomEmptyPosition()
     simulationThread.start()
   }
 
@@ -44,6 +43,6 @@ class SimulationSystemImpl(val level: LevelMap) extends Warehouse {
     level.set(p, item)
   }
 
-  override def get(p: Point): ItemType =
+  override def get(p: Point): Option[ItemType] =
     level.get(p)
 }

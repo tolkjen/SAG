@@ -1,5 +1,9 @@
 package system.level
 
+object Point {
+  def apply(x: Double, y: Double): Point = new Point(x, y)
+}
+
 class Point(var x: Double = 0.0, var y: Double = 0.0) {
   def this(that: Point) = this(that.x, that.y)
   def +(that: Point): Point = new Point(x + that.x, y + that.y)

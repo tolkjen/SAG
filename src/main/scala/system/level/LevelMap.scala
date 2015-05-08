@@ -108,7 +108,7 @@ class LevelMap(val width: Int, val height: Int) {
         currentPoints = newPoints
       }
 
-      throw new Exception("Can't find path")
+      throw new PathNotFoundException
     } else {
       List[Point]()
     }
@@ -119,19 +119,28 @@ class LevelMap(val width: Int, val height: Int) {
       y <- 0 until height
       x <- 0 until width
       if data(y)(x).fieldType == fType
-    } yield new Point(x, y)
+    } yield Point(x, y)
+
+  def positionEmptyShelves(): IndexedSeq[Point] =
+    for {
+      y <- 0 until height
+      x <- 0 until width
+      if data(y)(x).fieldType == FieldType.Shelf
+      if !data(y)(x).hasItem
+    } yield Point(x, y)
 
   def path(start: Point, ends: IndexedSeq[Point]): List[Point] = {
     val endsNeighbors = ends flatMap (p => emptyNeighbors(p))
     val path = unblockedPath(start, endsNeighbors)
-    val destination = neighbors(path.last).toSet.intersect(ends.toSet).head
+    val destination = path.nonEmpty match {
+      case true => neighbors(path.last).toSet.intersect(ends.toSet).head
+      case false => neighbors(start).toSet.intersect(ends.toSet).head
+    }
     path.toList ++ List(destination)
   }
 
-  def get(p: Point): ItemType = data(p.yInt)(p.xInt).item match {
-    case Some(item) => item
-    case None => throw new Exception("Field at "+p+" has no item in it.")
-  }
+  def get(p: Point): Option[ItemType] =
+    data(p.yInt)(p.xInt).item
 
   def set(p: Point, item: ItemType): Unit = {
     data(p.yInt)(p.xInt) = new LevelField(data(p.yInt)(p.xInt).fieldType, item)
