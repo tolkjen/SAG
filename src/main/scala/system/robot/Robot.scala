@@ -1,7 +1,7 @@
 package system.robot
 
 import system.level.ItemType.ItemType
-import system.level.Point
+import system.level.{LevelMap, Point}
 
 trait Robot {
   var position: Point
@@ -9,4 +9,6 @@ trait Robot {
   def progress(dt: Double): Unit
 
   def itemCarried: Option[ItemType]
+
+  def level: LevelMap
 }

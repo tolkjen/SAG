@@ -8,7 +8,7 @@ import system.robot.{BringerRobot, Robot}
 class SimulationSystemImpl(val level: LevelMap) extends Warehouse {
   private val emptyLevel = level.copy
   private val producer: Producer = new ProducerImpl
-  private val robots: Array[Robot] = Array.tabulate(5)(i =>
+  private val robots: Array[Robot] = Array.tabulate(2)(i =>
     new BringerRobot(this, producer, emptyLevel, new Point(2, 0)))
 
   @volatile
@@ -18,7 +18,7 @@ class SimulationSystemImpl(val level: LevelMap) extends Warehouse {
       val millis = 1000
       while (!simulationStopRequested) {
         for (robot <- robots)
-          robot.progress(millis / 1000.0)
+          robot.progress(millis)
         Thread.sleep(millis)
       }
     }

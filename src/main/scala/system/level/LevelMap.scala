@@ -145,4 +145,7 @@ class LevelMap(val width: Int, val height: Int) {
   def set(p: Point, item: ItemType): Unit = {
     data(p.yInt)(p.xInt) = new LevelField(data(p.yInt)(p.xInt).fieldType, item)
   }
+
+  def hasItem(p: Point): Boolean =
+    data(p.yInt)(p.xInt).hasItem
 }
