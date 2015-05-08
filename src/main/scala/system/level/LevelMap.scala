@@ -2,15 +2,28 @@ package system.level
 
 import java.io.InputStream
 
+import system.items.ItemType
 import system.level.FieldType.FieldType
-import system.level.ItemType.ItemType
+import ItemType.ItemType
 
 import scala.collection.immutable.IndexedSeq
 import scala.util.Random
 
 object LevelMap {
-  val random: Random = new Random()
+  private val random: Random = new Random()
 
+  /** Loads a level map from a text file.
+    *
+    * Text file must contain only a set of characters. The file must have the same number of characters in each row.
+    * Characters translate:
+    *  '.' into an empty field
+    *  '#' into a shelf
+    *  'C' into a Consumer space
+    *  'P' into a Producer space
+    *
+    * @param filename the name of the text file relative to /main/resources directory.
+    * @return LevelMap instance
+    */
   def fromResource(filename: String): LevelMap = {
     val stream: InputStream = getClass.getResourceAsStream(filename)
     val lines: List[String] = scala.io.Source.fromInputStream( stream ).getLines().toList
@@ -31,6 +44,7 @@ object LevelMap {
     levelMap
   }
 
+  /** Produces a new level map which has the latest field information from both given level maps. */
   def merge(a: LevelMap, b: LevelMap): LevelMap = {
     val newMap = new LevelMap(a.width, a.height)
     for (row <- 0 until a.height) {
@@ -42,19 +56,28 @@ object LevelMap {
   }
 }
 
+/** Contains information about the warehouse level grid.
+  *
+  * By default the whole level is empty (no shelves/producers/consumers).
+  *
+  * @param width width of the level (in grid units, eg. 10)
+  * @param height height of the level grid (eg. 5)
+  */
 class LevelMap(val width: Int, val height: Int) {
   private var data: Array[Array[LevelField]] = Array.tabulate(height, width)((y, x) => new LevelField)
 
   def this() = this(10, 10)
 
-  def randomEmptyPosition(forbidden: Option[Point] = None): Point = {
+  /** Returns the coordinates of an empty field, randomly chosen. */
+  def randomEmptyPosition: Point = {
     var p: Point = null
     do {
       p = new Point(LevelMap.random.nextInt(width), LevelMap.random.nextInt(height))
-    } while (data(p.y.toInt)(p.x.toInt).fieldType != FieldType.Empty || (forbidden.isDefined && forbidden.get == p))
+    } while (data(p.y.toInt)(p.x.toInt).fieldType != FieldType.Empty)
     p
   }
 
+  /** Returns a deep copy of this instance. */
   def copy: LevelMap = {
     val mapCopy = new LevelMap(width, height)
     for (row <- 0 until height) {
@@ -64,6 +87,54 @@ class LevelMap(val width: Int, val height: Int) {
     }
     mapCopy
   }
+
+  /** Returns a collection of coordinates of all fields of a given type.
+    *
+    * @param fType the chosen field type
+    */
+  def findAll(fType: FieldType): IndexedSeq[Point] =
+    for {
+      y <- 0 until height
+      x <- 0 until width
+      if data(y)(x).fieldType == fType
+    } yield Point(x, y)
+
+  /** Returns a collection of coordinates of all shelves which don't have any items in them. */
+  def findAllEmptyShelves: IndexedSeq[Point] =
+    for {
+      y <- 0 until height
+      x <- 0 until width
+      if data(y)(x).fieldType == FieldType.Shelf
+      if !data(y)(x).hasItem
+    } yield Point(x, y)
+
+  /** Returns the shortest path form the start point (exclusive) to any of the end points (inclusive). 
+    * 
+    * @param start the start point
+    * @param endpoints collection of end points
+    */
+  def path(start: Point, endpoints: IndexedSeq[Point]): List[Point] = {
+    val endsNeighbors = endpoints flatMap (p => emptyNeighbors(p))
+    val path = unblockedPath(start, endsNeighbors)
+    val destination = path.nonEmpty match {
+      case true => neighbors(path.last).toSet.intersect(endpoints.toSet).head
+      case false => neighbors(start).toSet.intersect(endpoints.toSet).head
+    }
+    path.toList ++ List(destination)
+  }
+
+  /** Returns the item at the given coordinates on the level map. */
+  def get(p: Point): Option[ItemType] =
+    data(p.yInt)(p.xInt).item
+
+  /** Sets the item of the level field at the given coordinates. */
+  def set(p: Point, item: ItemType): Unit = {
+    data(p.yInt)(p.xInt) = new LevelField(data(p.yInt)(p.xInt).fieldType, item)
+  }
+
+  /** Returns true if a field at the given coordinates has an item, false otherwise. */
+  def hasItem(p: Point): Boolean =
+    data(p.yInt)(p.xInt).hasItem
 
   private def neighbors(p: Point): List[Point] =
     for {
@@ -113,39 +184,4 @@ class LevelMap(val width: Int, val height: Int) {
       List[Point]()
     }
   }
-  
-  def position(fType: FieldType): IndexedSeq[Point] =
-    for {
-      y <- 0 until height
-      x <- 0 until width
-      if data(y)(x).fieldType == fType
-    } yield Point(x, y)
-
-  def positionEmptyShelves(): IndexedSeq[Point] =
-    for {
-      y <- 0 until height
-      x <- 0 until width
-      if data(y)(x).fieldType == FieldType.Shelf
-      if !data(y)(x).hasItem
-    } yield Point(x, y)
-
-  def path(start: Point, ends: IndexedSeq[Point]): List[Point] = {
-    val endsNeighbors = ends flatMap (p => emptyNeighbors(p))
-    val path = unblockedPath(start, endsNeighbors)
-    val destination = path.nonEmpty match {
-      case true => neighbors(path.last).toSet.intersect(ends.toSet).head
-      case false => neighbors(start).toSet.intersect(ends.toSet).head
-    }
-    path.toList ++ List(destination)
-  }
-
-  def get(p: Point): Option[ItemType] =
-    data(p.yInt)(p.xInt).item
-
-  def set(p: Point, item: ItemType): Unit = {
-    data(p.yInt)(p.xInt) = new LevelField(data(p.yInt)(p.xInt).fieldType, item)
-  }
-
-  def hasItem(p: Point): Boolean =
-    data(p.yInt)(p.xInt).hasItem
 }
