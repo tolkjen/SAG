@@ -136,6 +136,11 @@ class LevelMap(val width: Int, val height: Int) {
   def hasItem(p: Point): Boolean =
     data(p.yInt)(p.xInt).hasItem
 
+  /** Returns the type of field at the given coordinates. */
+  def getFieldType(p: Point): FieldType = {
+    data(p.yInt)(p.xInt).fieldType
+  }
+
   private def neighbors(p: Point): List[Point] =
     for {
       point <- List(new Point(p.x-1, p.y), new Point(p.x, p.y-1), new Point(p.x+1, p.y), new Point(p.x, p.y+1))
