@@ -1,42 +1,67 @@
 package system
 
+import mvc.SimulationModel
 import system.items.{ItemType, Producer, ProducerImpl}
 import ItemType.ItemType
 import system.level.{Point, LevelMap}
-import system.robot.{BringerRobot, Robot}
+import system.robot.RobotType._
+import system.robot.{RobotType, BringerRobot, Robot}
 
 /** Runs the warehouse simulation.
   *
   * @param level level map describing the warehouse interior.
   */
-class SimulationSystemImpl(val level: LevelMap) extends Warehouse {
+class SimulationSystemImpl(val level: LevelMap) extends Warehouse with SimulationModel {
   private val emptyLevel = level.copy
   private val producer: Producer = new ProducerImpl
   private val robots: Array[Robot] = Array.tabulate(2)(i =>
     new BringerRobot(this, producer, emptyLevel, level.randomEmptyPosition))
 
+  /** Time interval which is passed to robots, producer and consumer after each simulation step. */
+  private val initialMillis = 1000
+  /** Time interval of a simulation step. */
+  private var currentMillis = initialMillis
+
   @volatile
   private var simulationStopRequested = false
-  private val simulationThread = new Thread(new Runnable {
-    override def run(): Unit = {
-      val millis = 1000
-      while (!simulationStopRequested) {
-        for (robot <- robots)
-          robot.progress(millis)
-        Thread.sleep(millis)
-      }
-    }
-  })
+  private var simulationThread: Thread = null
 
-  /** Starts the simulation in a new thread. */
-  def start(): Unit = {
+  private def startSimulationThread(): Unit = {
+    simulationThread = new Thread(new Runnable {
+      override def run(): Unit = {
+        while(!simulationStopRequested) {
+          producer.progress(initialMillis)
+          for (robot <- robots)
+            robot.progress(initialMillis)
+          onWarehouseChanged(level, robots)
+          Thread.sleep(currentMillis)
+        }
+      }
+    })
     simulationThread.start()
   }
 
+  /** Starts the simulation in a new thread. */
+  override def start(producerProbabilities: Map[ItemType, Double],
+                     consumerProbabilities: Map[ItemType, Double],
+                     robotCounts: Map[RobotType, Int]): Unit =
+  {
+    if(simulationThread == null) {
+      simulationStopRequested = false
+      // TODO: add robots to map -> robotCounts contains info how many robots of each type user wants
+      producer.setProbabilities(producerProbabilities)
+      // TODO: set probabilities of every item in consumer (use consumerProbabilities)
+      startSimulationThread()
+    }
+  }
+
   /** Stops the simulation and blocks the current thread until the simulation finishes. */
-  def stop(): Unit = {
-    simulationStopRequested = true
-    simulationThread.join()
+  override def stop(): Unit = {
+    if(simulationThread != null) {
+      simulationStopRequested = true
+      simulationThread.join()
+      simulationThread = null
+    }
   }
 
   override def nearbyRobots(p: Point, radius: Double): Array[Robot] =
@@ -51,4 +76,19 @@ class SimulationSystemImpl(val level: LevelMap) extends Warehouse {
 
   override def get(p: Point): Option[ItemType] =
     level.get(p)
+
+  /**
+   * Set the speed at which the simulation is played. It should not affect the time sense of robots,
+   * producer or consumer. Average time measured by producer/consumer should not be affected.
+   * @param speed value 1.0 means normal, default speed
+   */
+  override def setSimulationSpeed(speed: Double): Unit = {
+    currentMillis = (initialMillis / speed).toInt
+  }
+
+  override def resetStatistics(): Unit = {
+    // TODO: reset statistics in Producer and Consumer
+    onStatisticsChanged(RobotType.Bringer, 0, 0)
+    onStatisticsChanged(RobotType.Deliverer, 0, 0)
+  }
 }
