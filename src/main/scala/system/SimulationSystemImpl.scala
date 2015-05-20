@@ -28,6 +28,7 @@ class SimulationSystemImpl(val level: LevelMap) extends Warehouse with Simulatio
     simulationThread = new Thread(new Runnable {
       override def run(): Unit = {
         while(!simulationStopRequested) {
+          producer.progress(initialMillis)
           for (robot <- robots)
             robot.progress(initialMillis)
           onWarehouseChanged(level, robots)
@@ -46,8 +47,8 @@ class SimulationSystemImpl(val level: LevelMap) extends Warehouse with Simulatio
     if(simulationThread == null) {
       simulationStopRequested = false
       // TODO: add robots to map -> robotCounts contains info how many robots of each type user wants
-      // TODO: set probabilities of every item in producer and consumer
-      // TODO: (use producerProbabilities and consumerProbabilities)
+      producer.setProbabilities(producerProbabilities)
+      // TODO: set probabilities of every item in consumer (use consumerProbabilities)
       startSimulationThread()
     }
   }
@@ -79,10 +80,8 @@ class SimulationSystemImpl(val level: LevelMap) extends Warehouse with Simulatio
   }
 
   override def resetStatistics(): Unit = {
-    val cnt = 0
-    val avg = 0
     // TODO: reset statistics in Producer and Consumer
-    onStatisticsChanged(RobotType.Bringer, avg, cnt)
-    onStatisticsChanged(RobotType.Deliverer, avg, cnt)
+    onStatisticsChanged(RobotType.Bringer, 0, 0)
+    onStatisticsChanged(RobotType.Deliverer, 0, 0)
   }
 }
