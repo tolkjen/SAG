@@ -45,7 +45,9 @@ class ItemPanel extends VBox {
     def getValues: Map[ItemType, Double] = {
       var m: Map[ItemType, Double] = Map()
       for((itemType, section) <- items) {
-        m += (itemType -> section.getProbability)
+        val prob: Double = section.getProbability
+        if(prob < 0) throw new IllegalArgumentException("Negative probabilities not allowed!")
+        m += (itemType -> prob)
       }
       m
     }
@@ -89,7 +91,7 @@ class ItemPanel extends VBox {
       return Some(rv)
     }
     catch {
-      case e: NumberFormatException =>
+      case e: Exception =>
         println(e.toString)
         errorLabel.setText("Invalid input!")
     }
