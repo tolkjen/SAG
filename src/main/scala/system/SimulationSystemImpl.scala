@@ -17,7 +17,9 @@ class SimulationSystemImpl(val level: LevelMap) extends Warehouse with Simulatio
   private val robots: Array[Robot] = Array.tabulate(2)(i =>
     new BringerRobot(this, producer, emptyLevel, level.randomEmptyPosition))
 
+  /** Time interval which is passed to robots, producer and consumer after each simulation step. */
   private val initialMillis = 1000
+  /** Time interval of a simulation step. */
   private var currentMillis = initialMillis
 
   @volatile
@@ -75,6 +77,11 @@ class SimulationSystemImpl(val level: LevelMap) extends Warehouse with Simulatio
   override def get(p: Point): Option[ItemType] =
     level.get(p)
 
+  /**
+   * Set the speed at which the simulation is played. It should not affect the time sense of robots,
+   * producer or consumer. Average time measured by producer/consumer should not be affected.
+   * @param speed value 1.0 means normal, default speed
+   */
   override def setSimulationSpeed(speed: Double): Unit = {
     currentMillis = (initialMillis / speed).toInt
   }

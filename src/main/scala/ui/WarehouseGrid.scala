@@ -12,12 +12,12 @@ import scalafx.scene.layout.GridPane
 import scalafx.scene.paint.Color.{Blue, Green, LightGray, Red, _}
 import scalafx.scene.paint.Paint
 
+/** Grid view that visualises warehouse current state */
 class WarehouseGrid(tilesInRow: Int, tilesInCol: Int) extends GridPane {
 
   val widthInPixels = tilesInRow * Tile.defaultDimension.toInt
   val heightInPixels = tilesInCol * Tile.defaultDimension.toInt
 
-  // TODO: improve ugly below
   private val grid: ArrayBuffer[Tile]
     = ArrayBuffer.tabulate(tilesInRow * tilesInCol)(i => createEmptyTile(i % tilesInRow, i / tilesInRow))
 

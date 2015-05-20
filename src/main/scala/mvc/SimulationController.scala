@@ -5,6 +5,7 @@ import system.level.LevelMap
 import system.robot.Robot
 import system.robot.RobotType._
 
+/** Controller in Model-View-Controller pattern. Passes data between model(simulation system) and view. */
 class SimulationController(val model: SimulationModel, val view: SimulationView) {
 
    model.registerController(this)
