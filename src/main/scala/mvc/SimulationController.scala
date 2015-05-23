@@ -1,6 +1,5 @@
 package mvc
 
-import system.items.ItemType.ItemType
 import system.level.LevelMap
 import system.robot.Robot
 import system.robot.RobotType._
@@ -16,10 +15,8 @@ class SimulationController(val model: SimulationModel, val view: SimulationView)
      view.updateStatistics(rt, averageTime, itemCount)
    }
 
-   def onStartSimulationButtonClicked(producerProbabilities: Map[ItemType, Double],
-                                      consumerProbabilities: Map[ItemType, Double],
-                                      robotCounts: Map[RobotType, Int]) = {
-     model.start(producerProbabilities, consumerProbabilities, robotCounts)
+   def onStartSimulationButtonClicked(options: SimulationOptions) = {
+     model.start(options)
    }
 
    def onStopSimulationButtonClicked(): Unit = model.stop()

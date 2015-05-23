@@ -1,6 +1,6 @@
 package ui
 
-import mvc.SimulationView
+import mvc.{SimulationOptions, SimulationView}
 import system.items.ItemType.ItemType
 import system.level.LevelMap
 import system.robot.Robot
@@ -33,9 +33,10 @@ class SimulationViewImpl(levelMap: LevelMap) extends PrimaryStage with Simulatio
 
       simulationPanel.enableStopButton()
       val counts: Map[RobotType, Int] = robotPanel.getRobotCounts
+      val radius: Int = robotPanel.getCommunicationRadius
       robotPanel.setEnabled(false)
       itemPanel.setEnabled(false)
-      onStartSimulationButtonClicked(pProbs.get, cProbs.get, counts)
+      onStartSimulationButtonClicked(new SimulationOptions(pProbs.get, cProbs.get, counts, radius))
     }
 
     override def newSpeedSet(speed: Double): Unit = {

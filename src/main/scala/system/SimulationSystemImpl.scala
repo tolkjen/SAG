@@ -1,11 +1,10 @@
 package system
 
-import mvc.SimulationModel
-import system.items.{ItemType, Producer, ProducerImpl}
-import ItemType.ItemType
-import system.level.{Point, LevelMap}
-import system.robot.RobotType._
-import system.robot.{RobotType, BringerRobot, Robot}
+import mvc.{SimulationModel, SimulationOptions}
+import system.items.ItemType.ItemType
+import system.items.{Producer, ProducerImpl}
+import system.level.{LevelMap, Point}
+import system.robot.{BringerRobot, Robot, RobotType}
 
 /** Runs the warehouse simulation.
   *
@@ -42,15 +41,21 @@ class SimulationSystemImpl(val level: LevelMap) extends Warehouse with Simulatio
   }
 
   /** Starts the simulation in a new thread. */
-  override def start(producerProbabilities: Map[ItemType, Double],
-                     consumerProbabilities: Map[ItemType, Double],
-                     robotCounts: Map[RobotType, Int]): Unit =
+  override def start(options: SimulationOptions): Unit =
   {
     if(simulationThread == null) {
       simulationStopRequested = false
+
+      //val robotCounts: Map[RobotType, Int] = options.robotCounts
       // TODO: add robots to map -> robotCounts contains info how many robots of each type user wants
-      producer.setProbabilities(producerProbabilities)
+
+      producer.setProbabilities(options.producerProbabilities)
+      //consumer.setProbabilities(options.consumerProbabilities)
       // TODO: set probabilities of every item in consumer (use consumerProbabilities)
+
+      BringerRobot.CommunicationRadius = options.communicationRadius
+      // TODO: set communication radius for Deliverer robots
+
       startSimulationThread()
     }
   }
