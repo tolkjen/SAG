@@ -1,6 +1,5 @@
 package mvc
 
-import system.items.ItemType._
 import system.level.LevelMap
 import system.robot.Robot
 import system.robot.RobotType.RobotType
@@ -13,16 +12,8 @@ trait SimulationModel {
     this.controller = Some(controller)
   }
 
-  /**
-   * Start (or resume) the simulation using given parameters.
-   * @param producerProbabilities for each item type the probability that the producer will create it
-   * @param consumerProbabilities for each item type the probability that the consumer will demand it
-   * Probabilities can be any non-negative numbers - they should be normalized to 0..1 range in producer/consumer
-   * @param robotCounts number of robots of each type
-   */
-  def start(producerProbabilities: Map[ItemType, Double],
-                      consumerProbabilities: Map[ItemType, Double],
-                      robotCounts: Map[RobotType, Int])
+  /** Start (or resume) the simulation using given options. */
+  def start(options: SimulationOptions)
 
   /** Stop (or pause) the simulation. */
   def stop()

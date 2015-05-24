@@ -1,6 +1,5 @@
 package mvc
 
-import system.items.ItemType._
 import system.level.LevelMap
 import system.robot.Robot
 import system.robot.RobotType.RobotType
@@ -19,12 +18,9 @@ trait SimulationView {
   /** Tell the view to update statistics for specific type of robot. */
   def updateStatistics(rt: RobotType, averageTime: Long, itemCount: Int): Unit
 
-  protected def onStartSimulationButtonClicked(producerProbabilities: Map[ItemType, Double],
-                                                   consumerProbabilities: Map[ItemType, Double],
-                                                   robotCounts: Map[RobotType, Int]): Unit = {
+  protected def onStartSimulationButtonClicked(options: SimulationOptions): Unit = {
     if(controller.isDefined)
-      controller.get.onStartSimulationButtonClicked(
-        producerProbabilities, consumerProbabilities, robotCounts)
+      controller.get.onStartSimulationButtonClicked(options)
   }
 
   protected def onStopSimulationButtonClicked(): Unit = {

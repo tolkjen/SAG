@@ -9,17 +9,17 @@ import system.robot.BringerState.BringerState
 import scala.collection.mutable
 import scala.util.Random
 
-private object BringerRobot {
+object BringerRobot {
   // How often (milliseconds) a robot should update it's level map
-  val CommunicationInterval = 1000
+  private val CommunicationInterval = 1000
 
   // How far the level map update can reach around the robot
-  val CommunicationRadius = 3.0
+  var CommunicationRadius = 3.0
 
   private val random = new Random()
 
   /** Returns a random name for the robot, eg. "R12345" */
-  def randomName: String = "R" + (10000 + random.nextInt(90000))
+  private def randomName: String = "R" + (10000 + random.nextInt(90000))
 }
 
 /** Robot whose job is to pick up an item from the producer and bring it onto an empty shelf.

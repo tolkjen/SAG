@@ -6,59 +6,69 @@ import ui.Widgets.{LongLabel, SmallButton, TitleLabel}
 
 import scalafx.Includes._
 import scalafx.geometry.{Insets, Pos}
-import scalafx.scene.control.Label
 import scalafx.scene.layout.{HBox, VBox}
 
 class RobotPanel extends VBox {
 
   private val initialRobotCount: Int = 2
 
-  private class RobotSection(robotType: RobotType, count: Int) extends HBox {
-    private val countLabel: Label = new LongLabel(count.toString)
-
+  private class SettingSection(text: String, initValue: Int, minValue: Int, maxValue: Int) extends HBox {
+    private val valueLabel = new LongLabel(initValue.toString)
     private var removeButton: SmallButton = null
     private val addButton: SmallButton = new SmallButton("+") {
       onAction = handle {
-        val current: Int = countLabel.getText.toInt
-        if(current == 0) removeButton.setDisable(false)
-        countLabel.setText((current + 1).toString)
+        val current: Int = getValue
+        if(current == maxValue - 1) addButton.setDisable(true)
+        if(current == minValue) removeButton.setDisable(false)
+        if(current < maxValue) valueLabel.setText((current + 1).toString)
       }
     }
     removeButton = new SmallButton("-") {
       onAction = handle {
-        val current: Int = countLabel.getText.toInt
-        if(current == 1) removeButton.setDisable(true)
-        if(current > 0) countLabel.setText((current - 1).toString)
+        val current: Int = getValue
+        if(current == minValue + 1) removeButton.setDisable(true)
+        if(current == maxValue) addButton.setDisable(false)
+        if(current > minValue) valueLabel.setText((current - 1).toString)
       }
     }
-    children = Seq(new LongLabel(robotType.toString), countLabel, addButton, removeButton)
+    children = Seq(new LongLabel(text), valueLabel, addButton, removeButton)
     alignmentInParent = Pos.Center
     spacing = 20
-    padding = Insets(30, 10, 10, 10)
+    padding = Insets(10, 10, 10, 10)
 
     def setEnabled(value: Boolean) = {
-      addButton.setDisable(!value)
-      if(!value || countLabel.getText.toInt > 0)
+      if(!value || getValue < maxValue)
+        addButton.setDisable(!value)
+      if(!value || getValue > minValue)
         removeButton.setDisable(!value)
     }
 
-    def getCount: Int = {
-      countLabel.getText.toInt
+    def getValue: Int = {
+      valueLabel.getText.toInt
     }
   }
 
-  private val bringerSection: RobotSection = new RobotSection(RobotType.Bringer, initialRobotCount)
-  private val delivererSection: RobotSection = new RobotSection(RobotType.Deliverer, initialRobotCount)
+  private val bringerSection: SettingSection
+    = new SettingSection(RobotType.Bringer.toString, initialRobotCount, 0, 30)
+  private val delivererSection: SettingSection
+    = new SettingSection(RobotType.Deliverer.toString, initialRobotCount, 0, 30)
+  private val rangeSection: SettingSection
+    = new SettingSection("Communication radius:", 3, 1, 10)
 
-  children = Seq(new TitleLabel("Robots"), bringerSection, delivererSection)
+  children = Seq(new TitleLabel("Robots"), bringerSection, delivererSection, rangeSection)
   style = Widgets.borderStyle
 
   def setEnabled(value: Boolean) = {
     bringerSection.setEnabled(value)
     delivererSection.setEnabled(value)
+    rangeSection.setEnabled(value)
   }
 
   def getRobotCounts: Map[RobotType, Int] = {
-    Map(RobotType.Bringer -> bringerSection.getCount, RobotType.Deliverer -> delivererSection.getCount)
+    Map(RobotType.Bringer -> bringerSection.getValue, RobotType.Deliverer -> delivererSection.getValue)
+  }
+
+  def getCommunicationRadius: Int = {
+    rangeSection.getValue
   }
 }
