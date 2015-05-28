@@ -132,6 +132,11 @@ class LevelMap(val width: Int, val height: Int) {
     data(p.yInt)(p.xInt) = new LevelField(data(p.yInt)(p.xInt).fieldType, item)
   }
 
+  /** Removes an item from the level field. */
+  def clear(p: Point): Unit = {
+    data(p.yInt)(p.xInt) = new LevelField(data(p.yInt)(p.xInt).fieldType, None)
+  }
+
   /** Returns true if a field at the given coordinates has an item, false otherwise. */
   def hasItem(p: Point): Boolean =
     data(p.yInt)(p.xInt).hasItem
