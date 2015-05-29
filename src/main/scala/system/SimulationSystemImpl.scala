@@ -2,9 +2,9 @@ package system
 
 import mvc.{SimulationModel, SimulationOptions}
 import system.items.ItemType.ItemType
-import system.items.{Producer, ProducerImpl}
+import system.items.{Producer, ProducerImpl, Consumer, ConsumerImpl}
 import system.level.{LevelMap, Point}
-import system.robot.{BringerRobot, Robot, RobotType}
+import system.robot.{BringerRobot, DelivererRobot, Robot, RobotType}
 
 /** Runs the warehouse simulation.
   *
@@ -13,7 +13,15 @@ import system.robot.{BringerRobot, Robot, RobotType}
 class SimulationSystemImpl(val level: LevelMap) extends Warehouse with SimulationModel {
   private val emptyLevel = level.copy
   private val producer: Producer = new ProducerImpl
-  private val robots: Array[Robot] = Array.tabulate(2)(i =>
+  private val consumer: Consumer = new ConsumerImpl
+  private val robots: Array[Robot] = Array(
+    new DelivererRobot(this, consumer, emptyLevel, level.randomEmptyPosition),
+    new DelivererRobot(this, consumer, emptyLevel, level.randomEmptyPosition),
+    new DelivererRobot(this, consumer, emptyLevel, level.randomEmptyPosition),
+    new DelivererRobot(this, consumer, emptyLevel, level.randomEmptyPosition),
+    new BringerRobot(this, producer, emptyLevel, level.randomEmptyPosition),
+    new BringerRobot(this, producer, emptyLevel, level.randomEmptyPosition),
+    new BringerRobot(this, producer, emptyLevel, level.randomEmptyPosition),
     new BringerRobot(this, producer, emptyLevel, level.randomEmptyPosition))
 
   /** Time interval which is passed to robots, producer and consumer after each simulation step. */
@@ -81,6 +89,9 @@ class SimulationSystemImpl(val level: LevelMap) extends Warehouse with Simulatio
 
   override def get(p: Point): Option[ItemType] =
     level.get(p)
+
+  override def clear(p: Point): Unit =
+    level.clear(p)
 
   /**
    * Set the speed at which the simulation is played. It should not affect the time sense of robots,

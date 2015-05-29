@@ -4,7 +4,7 @@ import system.items.ItemType
 import system.items.ItemType._
 import system.level.FieldType._
 import system.level.{FieldType, LevelMap, Point}
-import system.robot.Robot
+import system.robot.{RobotType, Robot}
 
 import scala.collection.mutable.ArrayBuffer
 import scalafx.geometry.Insets
@@ -66,7 +66,10 @@ class WarehouseGrid(tilesInRow: Int, tilesInCol: Int) extends GridPane {
       val p: Point = r.position
       val tile: Tile = getTile(p.xInt, p.yInt)
       drawItem(tile, r.itemCarried, LightGray)
-      tile.setText("B")
+      r.robotType match {
+        case RobotType.Deliverer => tile.setText("D")
+        case RobotType.Bringer => tile.setText("B")
+      }
     }
   }
 
