@@ -13,6 +13,8 @@ object BringerRobot {
   // How often (milliseconds) a robot should update it's level map
   private val CommunicationInterval = 1000
 
+  private val ScanDuration = 3000
+
   // How far the level map update can reach around the robot
   var CommunicationRadius = 3.0
 
@@ -36,8 +38,11 @@ class BringerRobot(warehouse: Warehouse, producer: Producer, var level: LevelMap
   private var target: Point = _
   private var timeLived = 0.0
   private var lastCommunication = 0.0
+  private var scanStartedAt = 0.0
+  private var scanInProgress = false
   private val name = BringerRobot.randomName
   private val movementStack: mutable.Stack[Point] = mutable.Stack()
+  private var scannedShelves: List[Point] = List[Point]()
 
   createPickupMoveStack()
 
@@ -58,18 +63,40 @@ class BringerRobot(warehouse: Warehouse, producer: Producer, var level: LevelMap
 
     if (movementStack.nonEmpty) {
       val destination = movementStack.top
-      val diff = destination - position
-      val delta = diff / diff.length * dt / 1000.0
-
-      if (delta.length >= diff.length) {
-        position = destination
-        movementStack.pop()
-        log("is at " + position)
-      } else {
-        position += delta
-      }
+      // If robot's destination is the same as its position it means that it needs to spend some time on scanning.
+      // Because of this it's easy to implement scanning - you basically repeat points in the movement stack. Each
+      // repeated point means scanning.
+      if (destination != position)
+        progressRobotMovement(dt, destination)
+      else
+        progressScanning()
     } else {
       createNewMoveStack()
+    }
+  }
+
+  private def progressScanning(): Unit = {
+    if (!scanInProgress) {
+      log("is scanning")
+      scanInProgress = true
+      scanStartedAt = timeLived
+    } else {
+      if (timeLived - scanStartedAt >= BringerRobot.ScanDuration) {
+        scanInProgress = false
+        movementStack.pop()
+      }
+    }
+  }
+
+  private def progressRobotMovement(dt: Double, destination: Point): Unit = {
+    val diff = destination - position
+    val delta = diff / diff.length * dt / 1000.0
+    if (delta.length >= diff.length) {
+      position = destination
+      movementStack.pop()
+      log("is at " + position)
+    } else {
+      position += delta
     }
   }
 
@@ -79,12 +106,14 @@ class BringerRobot(warehouse: Warehouse, producer: Producer, var level: LevelMap
 
   private def updateLevelMap(): Unit = {
     val robotsNearby = warehouse.nearbyRobots(position, BringerRobot.CommunicationRadius)
-    val levels = robotsNearby map (robot => robot.level)
-    level = levels.reduce(LevelMap.merge)
+    if (robotsNearby.length > 1) {
+      val levels = robotsNearby map (robot => robot.level)
+      level = levels.reduce(LevelMap.merge)
 
-    if (state == BringerState.Bring && level.hasItem(target)) {
-      log("recreates bringing route!")
-      createBringMoveStack()
+      if (state == BringerState.Bring && level.hasItem(target)) {
+        log("recreates bringing route!")
+        createBringMoveStack()
+      }
     }
   }
 
@@ -99,11 +128,13 @@ class BringerRobot(warehouse: Warehouse, producer: Producer, var level: LevelMap
         case Some(item) =>
           log("tried to bring item to the full shelf!")
           level.set(target, item)
+          scannedShelves = scannedShelves ++ List(target)
           createBringMoveStack()
         case None =>
           log("brought item at " + target)
           level.set(target, itemCarried.get)
           warehouse.set(target, itemCarried.get)
+          scannedShelves = List()
           itemCarried = None
           state = BringerState.Pickup
           createPickupMoveStack()
@@ -121,12 +152,34 @@ class BringerRobot(warehouse: Warehouse, producer: Producer, var level: LevelMap
       movementStack.clear()
       movementStack.pushAll(pathToEmptyShelf.take(pathToEmptyShelf.length - 1).reverse)
     } catch {
-      // Currently the is no robot to take the items from the shelves to the Consumer so eventually the warehouse will
-      // run out of space. When such happens the robot will go into the Paused state.
-      case e: PathNotFoundException =>
-        state = BringerState.Paused
-        log("entered Paused state")
+      case e: PathNotFoundException => createScanStack()
     }
+  }
+
+  private def createScanStack(): Unit = {
+    val allShelves = level.findAll(FieldType.Shelf)
+
+    scannedShelves = scannedShelves ++ List(target)
+    val unscannedShelves = allShelves diff scannedShelves
+    val shelvesToScan = unscannedShelves.nonEmpty match {
+      case true => unscannedShelves
+      case false =>
+        scannedShelves = List(target)
+        allShelves
+    }
+
+    val pathToShelf = level.path(position, shelvesToScan)
+    val longerPath = pathToShelf.length > 1 match {
+      case true =>
+        val lastStep = pathToShelf(pathToShelf.length - 2)
+        pathToShelf.take(pathToShelf.length - 2) ++ List(lastStep, lastStep, pathToShelf.last)
+      case false =>
+        List(position, pathToShelf.last)
+    }
+
+    target = longerPath.last
+    movementStack.clear()
+    movementStack.pushAll(longerPath.take(longerPath.length - 1).reverse)
   }
 
   private def createPickupMoveStack(): Unit = {
@@ -138,7 +191,7 @@ class BringerRobot(warehouse: Warehouse, producer: Producer, var level: LevelMap
     } catch {
       case e: PathNotFoundException =>
         state = BringerState.Paused
-        log("entered Paused state")
+        log("can't find Producer - entered paused state")
     }
   }
 }
