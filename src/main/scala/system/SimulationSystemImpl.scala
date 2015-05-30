@@ -16,12 +16,6 @@ class SimulationSystemImpl(val level: LevelMap) extends Warehouse with Simulatio
   private val consumer: Consumer = new ConsumerImpl
   private val robots: Array[Robot] = Array(
     new DelivererRobot(this, consumer, emptyLevel, level.randomEmptyPosition),
-    new DelivererRobot(this, consumer, emptyLevel, level.randomEmptyPosition),
-    new DelivererRobot(this, consumer, emptyLevel, level.randomEmptyPosition),
-    new DelivererRobot(this, consumer, emptyLevel, level.randomEmptyPosition),
-    new BringerRobot(this, producer, emptyLevel, level.randomEmptyPosition),
-    new BringerRobot(this, producer, emptyLevel, level.randomEmptyPosition),
-    new BringerRobot(this, producer, emptyLevel, level.randomEmptyPosition),
     new BringerRobot(this, producer, emptyLevel, level.randomEmptyPosition))
 
   /** Time interval which is passed to robots, producer and consumer after each simulation step. */
