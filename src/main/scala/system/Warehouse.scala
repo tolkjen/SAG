@@ -24,4 +24,11 @@ trait Warehouse {
     * @param item Item type
     */
   def set(p: Point, item: ItemType): Unit
+
+  /** Removes an item from the level field of the true warehouse level map.
+    *
+    * @param p Coordinates of the level field
+    */
+  def clear(p: Point): Unit
+
 }
