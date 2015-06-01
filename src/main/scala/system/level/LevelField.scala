@@ -37,4 +37,8 @@ class LevelField(val fieldType: FieldType, val item: Option[ItemType]) {
 
   // Returns true if the field contains an item, false otherwise.
   def hasItem: Boolean = item.isDefined
+
+  // Returns the type of item */
+  def typeItem: Option[ItemType] =
+      item
 }

@@ -108,6 +108,18 @@ class LevelMap(val width: Int, val height: Int) {
       if !data(y)(x).hasItem
     } yield Point(x, y)
 
+  def findAllRequestedItems(requestedItem: Option[ItemType]): IndexedSeq[Point] =
+    for {
+      y <- 0 until height
+      x <- 0 until width
+
+      if data(y)(x).fieldType == FieldType.Shelf
+      if data(y)(x).hasItem
+      if data(y)(x).item.get == requestedItem.get
+
+
+    } yield Point(x, y)
+
   /** Returns the shortest path form the start point (exclusive) to any of the end points (inclusive). 
     * 
     * @param start the start point
@@ -140,6 +152,7 @@ class LevelMap(val width: Int, val height: Int) {
   /** Returns true if a field at the given coordinates has an item, false otherwise. */
   def hasItem(p: Point): Boolean =
     data(p.yInt)(p.xInt).hasItem
+
 
   /** Returns the type of field at the given coordinates. */
   def getFieldType(p: Point): FieldType = {
