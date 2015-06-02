@@ -18,9 +18,9 @@ trait SimulationControlListener {
 class SimulationControlPanel extends VBox {
   private var listener: Option[SimulationControlListener] = None
 
-  private var simulationSpeed: Double = 1.0
+  private var simulationSpeed: Double = 5.0
   private val speedStep: Double = 0.5
-  private val maxSpeedAllowed: Double = 10 * simulationSpeed
+  private val maxSpeedAllowed: Double = 100.0
   private val minSpeedAllowed: Double = speedStep
 
   private val df: DecimalFormat = new DecimalFormat("0.0")
@@ -43,7 +43,7 @@ class SimulationControlPanel extends VBox {
   stopButton.setDisable(true)
 
   private val speedLabel = new Label("Simulation speed:")
-  private val currentSpeedLabel = new Label("1.0")
+  private val currentSpeedLabel = new Label(simulationSpeed.toString)
 
   private val increaseSpeed = new SmallButton("+") {
     onAction = handle {

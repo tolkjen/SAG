@@ -84,7 +84,7 @@ class DelivererRobot(warehouse: Warehouse, consumer: Consumer, var level: LevelM
 
   private def progressScanning(): Unit = {
     if (!scanInProgress) {
-      log("is scanning")
+//      log("is scanning")
       scanInProgress = true
       scanStartedAt = timeLived
     } else {
@@ -118,7 +118,7 @@ class DelivererRobot(warehouse: Warehouse, consumer: Consumer, var level: LevelM
       level = levels.reduce(LevelMap.merge)
       if (state == DelivererState.Pickup) {
         if (!level.hasItem(target) || level.get(target).get != itemRequested.get) {
-          log("recreates picking route!")
+//          log("recreates picking route!")
           createPickupMoveStack()
         }
       }
@@ -128,7 +128,7 @@ class DelivererRobot(warehouse: Warehouse, consumer: Consumer, var level: LevelM
   private def createNewMoveStack(): Unit = state match {
     case DelivererState.Free =>
       itemRequested = Some(consumer.requestItem)
-      log("Requst from the Consumer " + itemRequested.get)
+//      log("Requst from the Consumer " + itemRequested.get)
       state = DelivererState.Pickup
       createPickupMoveStack()
     case DelivererState.Pickup =>
@@ -140,19 +140,19 @@ class DelivererRobot(warehouse: Warehouse, consumer: Consumer, var level: LevelM
             state = DelivererState.Deliver
             level.clear(target)
             warehouse.clear(target)
-            log("picked up item from " + target)
+//            log("picked up item from " + target)
             createDeliverMoveStack()
           }
           else
           {
             scannedShelves = scannedShelves ++ List(target)
-            log("Tried pickup wrong item")
+//            log("Tried pickup wrong item")
             level.set(target, item)
             createPickupMoveStack()
           }
         case None =>
           scannedShelves = scannedShelves ++ List(target)
-          log("Tried pickup item from empty shelf!")
+//          log("Tried pickup item from empty shelf!")
           level.clear(target)
           createPickupMoveStack()
       }
@@ -162,7 +162,7 @@ class DelivererRobot(warehouse: Warehouse, consumer: Consumer, var level: LevelM
       itemRequested = None
       itemCarried = None
       state = DelivererState.Free
-      log("Item delivered to consumer " + target)
+//      log("Item delivered to consumer " + target)
 
     case DelivererState.Paused =>
   }

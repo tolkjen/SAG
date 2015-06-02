@@ -79,7 +79,7 @@ class BringerRobot(warehouse: Warehouse, producer: Producer, var level: LevelMap
 
   private def progressScanning(): Unit = {
     if (!scanInProgress) {
-      log("is scanning")
+//      log("is scanning")
       scanInProgress = true
       scanStartedAt = timeLived
     } else {
@@ -113,7 +113,7 @@ class BringerRobot(warehouse: Warehouse, producer: Producer, var level: LevelMap
       level = levels.reduce(LevelMap.merge)
 
       if (state == BringerState.Bring && level.hasItem(target)) {
-        log("recreates bringing route!")
+//        log("recreates bringing route!")
         createBringMoveStack()
       }
     }
@@ -123,17 +123,17 @@ class BringerRobot(warehouse: Warehouse, producer: Producer, var level: LevelMap
     case BringerState.Pickup =>
       itemCarried = Some(producer.newItem)
       state = BringerState.Bring
-      log("picked up item from " + target)
+//      log("picked up item from " + target)
       createBringMoveStack()
     case BringerState.Bring =>
       warehouse.get(target) match {
         case Some(item) =>
-          log("tried to bring item to the full shelf!")
+//          log("tried to bring item to the full shelf!")
           level.set(target, item)
           scannedShelves = scannedShelves ++ List(target)
           createBringMoveStack()
         case None =>
-          log("brought item at " + target)
+//          log("brought item at " + target)
           level.set(target, itemCarried.get)
           warehouse.set(target, itemCarried.get)
           itemCarried = None

@@ -10,7 +10,7 @@ import scala.util.Random
 class ConsumerImpl extends Consumer {
 
   private val random = new Random()
-  private val name = "Consumer_" + (10000 + random.nextInt(90000))
+  private val name = "Consumer_" + (10000 + random.nextInt(90000)) + ".txt"
   private var timeStart = System.currentTimeMillis
   private var timeStop = System.currentTimeMillis
   private var counter = 0
@@ -31,15 +31,15 @@ class ConsumerImpl extends Consumer {
 
   override def deliveredItem: Unit = {
     counter += 1
-    counter % 10 match {
+    counter % 5 match {
       case 1 =>
         timeStart = System.currentTimeMillis
       case 0 =>
         timeStop = System.currentTimeMillis
-        newAverageTime = ((timeStop - timeStart) / 10).toInt
+        newAverageTime = ((timeStop - timeStart) / 5).toInt
         try {
           val out = new PrintWriter(new BufferedWriter(new FileWriter(name, true)))
-          out.println(newAverageTime)
+          out.println(counter + " " + newAverageTime)
           out.close()
         }
       case _ =>
@@ -59,7 +59,6 @@ class ConsumerImpl extends Consumer {
   }
 
   override def progress(dt: Double): Unit = {
-
     onStatisticsChanged(new Statistic(newAverageTime, counter))
   }
 

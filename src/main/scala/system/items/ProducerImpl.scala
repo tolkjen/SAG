@@ -11,7 +11,7 @@ import scala.util.Random
 class ProducerImpl extends Producer {
 
   private val random = new Random()
-  private val name = "Producer_" + (10000 + random.nextInt(90000))
+  private val name = "Producer_" + (10000 + random.nextInt(90000)) + ".txt"
   private var timeStart = System.currentTimeMillis
   private var timeStop = System.currentTimeMillis
   private var counter = 0
@@ -27,16 +27,16 @@ class ProducerImpl extends Producer {
   override def newItem: ItemType = {
     val item = currentItem
     currentItem = randomItem()
-    counter+=1
-    counter%10 match {
+    counter += 1
+    counter % 5 match {
       case 1 =>
         timeStart = System.currentTimeMillis
       case 0 =>
         timeStop = System.currentTimeMillis
-        newAverageTime = ((timeStop - timeStart)/10).toInt
+        newAverageTime = ((timeStop - timeStart)/5).toInt
         try {
             val out = new PrintWriter(new BufferedWriter(new FileWriter(name, true)))
-            out.println(newAverageTime)
+            out.println(counter + " " + newAverageTime)
             out.close()
         }
       case _ =>
