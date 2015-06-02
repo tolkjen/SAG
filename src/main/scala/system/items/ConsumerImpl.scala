@@ -34,6 +34,12 @@ class ConsumerImpl extends Consumer {
 
   override def progress(dt: Double): Unit = {
     // TODO: update statistics
+    // if something changes call: onStatisticsChanged(new Statistic(newAverageTime, newTotalItems))
+  }
+
+  override def resetStatistics(): Unit = {
+    // TODO: reset
+    onStatisticsChanged(new Statistic(0, 0))  // tell GUI to update
   }
 
   override def setProbabilities(p: Map[ItemType, Double]): Unit = {

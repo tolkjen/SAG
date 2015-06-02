@@ -28,9 +28,9 @@ class StatisticPanel(onResetStatisticsListener: () => Unit) extends GridPane {
   GridPane.setColumnSpan(title, 3)
 
   add(new CustomLabel("Average\ntime [ms]:"), 0, 2)
-  add(new CustomLabel("Items:"), 0, 3)
-  add(new CustomLabel("Producer\n -> shelf:"), 1, 1)
-  add(new CustomLabel("Shelf\n -> consumer:"), 2, 1)
+  add(new CustomLabel("Total:"), 0, 3)
+  add(new CustomLabel("Items taken\nfrom producer:"), 1, 1)
+  add(new CustomLabel("Items delivered\nto consumer:"), 2, 1)
 
   add(avgTimeBringer, 1, 2)
   add(avgTimeDeliverer, 2, 2)

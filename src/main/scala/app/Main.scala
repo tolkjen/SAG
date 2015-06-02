@@ -14,7 +14,7 @@ import scalafx.application.JFXApp
  */
 object Main extends JFXApp {
 
-  private val map: LevelMap = LevelMap.fromResource("/map1.txt")
+  private val map: LevelMap = LevelMap.fromResource("/map2.txt")
 
   private val view = new SimulationViewImpl(map)
   stage = view

@@ -7,7 +7,7 @@ import scalafx.scene.shape.Rectangle
 import scalafx.scene.text.Text
 
 object Tile {
-  val defaultDimension: Double = 40.0
+  val defaultDimension: Double = 20.0
 }
 
 class Tile(val x:Int, val y:Int, paint:Paint, text:String) extends StackPane {

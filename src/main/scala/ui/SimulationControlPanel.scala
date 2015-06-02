@@ -19,8 +19,8 @@ class SimulationControlPanel extends VBox {
   private var listener: Option[SimulationControlListener] = None
 
   private var simulationSpeed: Double = 1.0
-  private val speedStep: Double = 0.2
-  private val maxSpeedAllowed: Double = 5 * simulationSpeed
+  private val speedStep: Double = 0.5
+  private val maxSpeedAllowed: Double = 10 * simulationSpeed
   private val minSpeedAllowed: Double = speedStep
 
   private val df: DecimalFormat = new DecimalFormat("0.0")
