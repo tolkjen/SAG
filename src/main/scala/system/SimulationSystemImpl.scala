@@ -2,7 +2,7 @@ package system
 
 import mvc.{SimulationModel, SimulationOptions}
 import system.items.ItemType.ItemType
-import system.items.{Consumer, ConsumerImpl, Producer, ProducerImpl}
+import system.items._
 import system.level.{LevelMap, Point}
 import system.robot.RobotType.{Bringer, Deliverer, RobotType}
 import system.robot.{BringerRobot, DelivererRobot, Robot}
@@ -29,6 +29,8 @@ class SimulationSystemImpl(val level: LevelMap) extends Warehouse with Simulatio
   @volatile
   private var simulationStopRequested = false
   private var simulationThread: Thread = null
+
+  initProducerAndConsumer()
 
   private def startSimulationThread(): Unit = {
     simulationThread = new Thread(new Runnable {
@@ -96,8 +98,11 @@ class SimulationSystemImpl(val level: LevelMap) extends Warehouse with Simulatio
   override def resetStatistics(): Unit = {
     producer.resetStatistics()
     consumer.resetStatistics()
-    onStatisticsChanged(Bringer, 0, 0)
-    onStatisticsChanged(Deliverer, 0, 0)
+  }
+
+  private def initProducerAndConsumer() = {
+    consumer.setStatisticsListener((s: Statistic) => onStatisticsChanged(Deliverer, s.averageTimeMillis, s.totalItems))
+    producer.setStatisticsListener((s: Statistic) => onStatisticsChanged(Bringer, s.averageTimeMillis, s.totalItems))
   }
 
   private def updateRobots(robotCounts: Map[RobotType, Int]) = {
