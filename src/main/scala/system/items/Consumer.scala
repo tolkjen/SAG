@@ -11,6 +11,8 @@ trait Consumer {
   /** Notifies the consumer that some time has passed so it can update statistics. */
   def progress(dt: Double): Unit
 
+  def resetStatistics(): Unit
+
   /** Set probabilities for each item type to be generated. */
   def setProbabilities(p: Map[ItemType, Double])
 }

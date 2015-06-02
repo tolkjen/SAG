@@ -52,7 +52,7 @@ class SimulationViewImpl(levelMap: LevelMap) extends PrimaryStage with Simulatio
   })
 
   scene = new Scene(
-    Math.max(700, warehouseGrid.widthInPixels + 500),
+    Math.max(850, warehouseGrid.widthInPixels + 550),
     Math.max(650, warehouseGrid.heightInPixels + 300))
   {
     minWidth = width.get()

@@ -36,10 +36,15 @@ class ConsumerImpl extends Consumer {
     // TODO: update statistics
   }
 
+  override def resetStatistics(): Unit = {
+    // TODO:
+  }
+
   override def setProbabilities(p: Map[ItemType, Double]): Unit = {
     var sum: Double = 0
     p.values.foreach(v => sum += v)
     itemProbabilities = p mapValues { case (v) => v / sum }
     currentItem = randomItem()
   }
+
 }

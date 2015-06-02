@@ -26,6 +26,10 @@ class ProducerImpl extends Producer {
     // TODO: update statistics
   }
 
+  override def resetStatistics(): Unit = {
+    // TODO:
+  }
+
   override def setProbabilities(p: Map[ItemType, Double]): Unit = {
     var sum: Double = 0
     p.values.foreach(v => sum += v)

@@ -2,9 +2,13 @@ package system
 
 import mvc.{SimulationModel, SimulationOptions}
 import system.items.ItemType.ItemType
-import system.items.{Producer, ProducerImpl, Consumer, ConsumerImpl}
+import system.items.{Consumer, ConsumerImpl, Producer, ProducerImpl}
 import system.level.{LevelMap, Point}
-import system.robot.{BringerRobot, DelivererRobot, Robot, RobotType}
+import system.robot.RobotType.{Bringer, Deliverer, RobotType}
+import system.robot.{BringerRobot, DelivererRobot, Robot}
+
+import scala.collection.mutable
+import scala.collection.mutable.ListBuffer
 
 /** Runs the warehouse simulation.
   *
@@ -14,11 +18,10 @@ class SimulationSystemImpl(val level: LevelMap) extends Warehouse with Simulatio
   private val emptyLevel = level.copy
   private val producer: Producer = new ProducerImpl
   private val consumer: Consumer = new ConsumerImpl
-  private val robots: Array[Robot] = Array(
-    new DelivererRobot(this, consumer, emptyLevel, level.randomEmptyPosition),
-    new BringerRobot(this, producer, emptyLevel, level.randomEmptyPosition))
+  private val robotMap = mutable.HashMap[RobotType, ListBuffer[Robot]](
+    Bringer -> ListBuffer.empty[Robot], Deliverer -> ListBuffer.empty[Robot])
 
-  /** Time interval which is passed to robots, producer and consumer after each simulation step. */
+  /** Time interval which is passed to robotMap, producer and consumer after each simulation step. */
   private val initialMillis = 1000
   /** Time interval of a simulation step. */
   private var currentMillis = initialMillis
@@ -34,7 +37,7 @@ class SimulationSystemImpl(val level: LevelMap) extends Warehouse with Simulatio
           producer.progress(initialMillis)
           for (robot <- robots)
             robot.progress(initialMillis)
-          onWarehouseChanged(level, robots)
+          onWarehouseChanged(level, robots.toArray)
           Thread.sleep(currentMillis)
         }
       }
@@ -47,17 +50,11 @@ class SimulationSystemImpl(val level: LevelMap) extends Warehouse with Simulatio
   {
     if(simulationThread == null) {
       simulationStopRequested = false
-
-      //val robotCounts: Map[RobotType, Int] = options.robotCounts
-      // TODO: add robots to map -> robotCounts contains info how many robots of each type user wants
-
+      updateRobots(options.robotCounts)
       producer.setProbabilities(options.producerProbabilities)
-      //consumer.setProbabilities(options.consumerProbabilities)
-      // TODO: set probabilities of every item in consumer (use consumerProbabilities)
-
+      consumer.setProbabilities(options.consumerProbabilities)
       BringerRobot.CommunicationRadius = options.communicationRadius
-      // TODO: set communication radius for Deliverer robots
-
+      DelivererRobot.CommunicationRadius = options.communicationRadius
       startSimulationThread()
     }
   }
@@ -73,7 +70,7 @@ class SimulationSystemImpl(val level: LevelMap) extends Warehouse with Simulatio
 
   override def nearbyRobots(p: Point, radius: Double): Array[Robot] =
     for {
-      robot <- robots
+      robot <- robots.toArray
       if (robot.position - p).length <= radius
     } yield robot
 
@@ -97,8 +94,29 @@ class SimulationSystemImpl(val level: LevelMap) extends Warehouse with Simulatio
   }
 
   override def resetStatistics(): Unit = {
-    // TODO: reset statistics in Producer and Consumer
-    onStatisticsChanged(RobotType.Bringer, 0, 0)
-    onStatisticsChanged(RobotType.Deliverer, 0, 0)
+    producer.resetStatistics()
+    consumer.resetStatistics()
+    onStatisticsChanged(Bringer, 0, 0)
+    onStatisticsChanged(Deliverer, 0, 0)
   }
+
+  private def updateRobots(robotCounts: Map[RobotType, Int]) = {
+    for((robotType, desiredCount) <- robotCounts) {
+      val currentCount: Int = robotMap(robotType).length
+      if(desiredCount > currentCount) {
+        for(i <- 1 to desiredCount - currentCount) {
+          robotMap(robotType) += newRobot(robotType)
+        }
+      } else if(desiredCount < currentCount) {
+        robotMap(robotType) = robotMap(robotType).drop(currentCount - desiredCount)
+      }
+    }
+  }
+
+  private def newRobot(rt: RobotType): Robot = rt match {
+    case Deliverer => new DelivererRobot(this, consumer, emptyLevel, level.randomEmptyPosition)
+    case Bringer => new BringerRobot(this, producer, emptyLevel, level.randomEmptyPosition)
+  }
+
+  private def robots: Iterable[Robot] = robotMap.values.flatten
 }

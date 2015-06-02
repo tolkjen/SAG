@@ -10,7 +10,7 @@ import scalafx.scene.layout.{HBox, VBox}
 
 class RobotPanel extends VBox {
 
-  private val initialRobotCount: Int = 2
+  private val initialRobotCount: Int = 7
 
   private class SettingSection(text: String, initValue: Int, minValue: Int, maxValue: Int) extends HBox {
     private val valueLabel = new LongLabel(initValue.toString)
