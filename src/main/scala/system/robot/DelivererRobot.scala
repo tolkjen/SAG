@@ -101,7 +101,7 @@ class DelivererRobot(warehouse: Warehouse, consumer: Consumer, var level: LevelM
     if (delta.length >= diff.length) {
       position = destination
       movementStack.pop()
-      log("is at " + position)
+//      log("is at " + position)
     } else {
       position += delta
     }
@@ -116,8 +116,11 @@ class DelivererRobot(warehouse: Warehouse, consumer: Consumer, var level: LevelM
     if (robotsNearby.length > 1) {
       val levels = robotsNearby map (robot => robot.level)
       level = levels.reduce(LevelMap.merge)
-      if (state == DelivererState.Pickup ) {
-        log("recreates bringing route!")
+      if (state == DelivererState.Pickup) {
+        if (!level.hasItem(target) || level.get(target).get != itemRequested.get) {
+          log("recreates picking route!")
+          createPickupMoveStack()
+        }
       }
     }
   }
@@ -138,7 +141,6 @@ class DelivererRobot(warehouse: Warehouse, consumer: Consumer, var level: LevelM
             level.clear(target)
             warehouse.clear(target)
             log("picked up item from " + target)
-            scannedShelves = List()
             createDeliverMoveStack()
           }
           else
@@ -153,7 +155,6 @@ class DelivererRobot(warehouse: Warehouse, consumer: Consumer, var level: LevelM
           log("Tried pickup item from empty shelf!")
           level.clear(target)
           createPickupMoveStack()
-
       }
 
     case DelivererState.Deliver =>

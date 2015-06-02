@@ -96,7 +96,7 @@ class BringerRobot(warehouse: Warehouse, producer: Producer, var level: LevelMap
     if (delta.length >= diff.length) {
       position = destination
       movementStack.pop()
-      log("is at " + position)
+//      log("is at " + position)
     } else {
       position += delta
     }
@@ -136,7 +136,6 @@ class BringerRobot(warehouse: Warehouse, producer: Producer, var level: LevelMap
           log("brought item at " + target)
           level.set(target, itemCarried.get)
           warehouse.set(target, itemCarried.get)
-          scannedShelves = List()
           itemCarried = None
           state = BringerState.Pickup
           createPickupMoveStack()
