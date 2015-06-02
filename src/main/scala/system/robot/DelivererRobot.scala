@@ -18,7 +18,7 @@ object DelivererRobot {
   private val ScanDuration = 3000
 
   // How far the level map update can reach around the robot
-  var CommunicationRadius = 1.0
+  var CommunicationRadius = 3.0
 
   private val random = new Random()
 
@@ -158,6 +158,7 @@ class DelivererRobot(warehouse: Warehouse, consumer: Consumer, var level: LevelM
       }
 
     case DelivererState.Deliver =>
+      consumer.deliveredItem
       itemRequested = None
       itemCarried = None
       state = DelivererState.Free

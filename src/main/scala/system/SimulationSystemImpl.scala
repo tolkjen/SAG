@@ -37,6 +37,7 @@ class SimulationSystemImpl(val level: LevelMap) extends Warehouse with Simulatio
       override def run(): Unit = {
         while(!simulationStopRequested) {
           producer.progress(initialMillis)
+          consumer.progress(initialMillis)
           for (robot <- robots)
             robot.progress(initialMillis)
           onWarehouseChanged(level, robots.toArray)

@@ -17,7 +17,7 @@ object BringerRobot {
   private val ScanDuration = 3000
 
   // How far the level map update can reach around the robot
-  var CommunicationRadius = 1.0
+  var CommunicationRadius = 5.0
 
   private val random = new Random()
 
