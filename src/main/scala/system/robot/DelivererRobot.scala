@@ -45,7 +45,6 @@ class DelivererRobot(warehouse: Warehouse, consumer: Consumer, var level: LevelM
   private var target: Point = _
   private var timeLived = 0.0
   private var lastCommunication = 0.0
-  private var consumerTagret: Point = _
 
   private var scanStartedAt = 0.0
   private var scanInProgress = false
@@ -197,7 +196,7 @@ class DelivererRobot(warehouse: Warehouse, consumer: Consumer, var level: LevelM
   private def createDeliverMoveStack(): Unit = {
     try {
       // The path will take the robot from its current position to the consumer
-      val pathToConsumer = level.path(position, IndexedSeq(consumerTagret))
+      val pathToConsumer = level.path(position, level.findAll(FieldType.Consumer))
       target = pathToConsumer.last
       movementStack.clear()
       movementStack.pushAll(pathToConsumer.take(pathToConsumer.length - 1).reverse)
@@ -227,7 +226,6 @@ class DelivererRobot(warehouse: Warehouse, consumer: Consumer, var level: LevelM
     try {
       //The path will take the robot to the nearest consumer
       val pathToConsumer = level.path(position, level.findAll(FieldType.Consumer))
-      consumerTagret = pathToConsumer.last
       target = pathToConsumer.last
       movementStack.clear()
       movementStack.pushAll(pathToConsumer.take(pathToConsumer.length - 1).reverse)

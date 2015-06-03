@@ -21,19 +21,18 @@ object LevelField {
   * @param fieldType type of the field
   * @param item item stored in that field (only for shelves)
   */
-class LevelField(val fieldType: FieldType, val item: Option[ItemType]) {
+class LevelField(val fieldType: FieldType, val item: Option[ItemType], val createdAt: Long) {
 
-  // The time when the field was created
-  val createdAt: Long = System.currentTimeMillis
-
-  def this() = this(FieldType.Empty, None)
-
-  def this(f: FieldType) = this(f, None)
+  def this(f: FieldType, i: Option[ItemType]) = this(f, i, System.currentTimeMillis)
 
   def this(f: FieldType, i: ItemType) = this(f, Some(i))
 
+  def this(f: FieldType) = this(f, None)
+
+  def this() = this(FieldType.Empty, None)
+
   // Creates a copy of this instance
-  def copy: LevelField = new LevelField(fieldType, item)
+  def copy: LevelField = new LevelField(fieldType, item, createdAt)
 
   // Returns true if the field contains an item, false otherwise.
   def hasItem: Boolean = item.isDefined
